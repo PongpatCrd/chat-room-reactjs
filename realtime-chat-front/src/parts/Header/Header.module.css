@@ -1,0 +1,27 @@
+.outerBox {
+  background-color: #127d77;
+  color: white;
+}
+
+.loginBtn > button {
+  background-color: #125418;
+  border-radius: 8;
+}
+
+.loginBtn:hover > button {
+  background-color: #2dc93a;
+}
+
+.logoutBtn > button {
+  background-color: #9b1a1a;
+  border-radius: 8;
+}
+
+.logoutBtn:hover > button {
+  background-color: #d82222;
+}
+
+.sideBarHeader {
+  display: flex;
+  justify-content: flex-end;
+}
