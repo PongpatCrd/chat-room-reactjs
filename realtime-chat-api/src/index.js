@@ -2,10 +2,9 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const http = require("http");
 const router = require("./router");
-const socketio = require("./socket-io");
+const socketio = require("./utility/socket-io");
 
 const app = express();
 const server = http.createServer(app);
@@ -28,7 +27,9 @@ app.use(
     optionsSuccessStatus: 200,
   })
 );
-app.use(bodyParser.json());
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(router);
 
 const PORT = process.env.PORT || 5000;

@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import API from "../../helpers/APIConnector/APIConnector";
 
 import { makeStyles } from "@material-ui/core/styles";
@@ -27,6 +28,7 @@ import LoginModal from "../../components/LoginModal/LoginModal";
 import Toast from "../../helpers/SweetAlert/SweetAlert";
 
 import { UserContext } from "../../contexts/UserContext/UserContext";
+import { CommonContext } from "../../contexts/CommonContext/CommonContext";
 
 const styles = makeStyles({
   appBar: {
@@ -35,20 +37,20 @@ const styles = makeStyles({
   },
 });
 
-const Header = (props) => {
+const Header = () => {
   const { user, dispatch } = useContext(UserContext);
+  const { common, dispatch: commonDispatch } = useContext(CommonContext);
 
   const [openSiderBar, setOpenSiderBar] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const f = {
     handleDrawerOpen: () => setOpenSiderBar(true),
     handleDrawerClose: () => setOpenSiderBar(false),
-    openLoginModal: () => setShowLoginModal(true),
-    closeLoginModal: () => setShowLoginModal(false),
+    openLoginModal: () => commonDispatch({ type: 'SET_SHOW_LOGIN_MODAL', data: { showLoginModal: true } }),
+    closeLoginModal: () => commonDispatch({ type: 'SET_SHOW_LOGIN_MODAL', data: { showLoginModal: false } }),
     logOut: (e) => {
-      e.preventDefault()
-      
+      e.preventDefault();
+
       API.post("/logout", {
         username: user.username,
         accessToken: user.accessToken,
@@ -74,7 +76,7 @@ const Header = (props) => {
   return (
     <div>
       <LoginModal
-        show={showLoginModal}
+        show={common.showLoginModal}
         closeFn={f.closeLoginModal}
       ></LoginModal>
 
@@ -93,7 +95,7 @@ const Header = (props) => {
             </Grid>
 
             <Grid item xs>
-              <Typography variant="h6">{props.title}</Typography>
+              <Typography variant="h6">{common.headerTitle}</Typography>
             </Grid>
 
             <Grid item>
@@ -133,14 +135,31 @@ const Header = (props) => {
         </div>
         <Divider />
         <List>
-          {["Join", "Rooms"].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                <LabelIcon />
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          <ListItem component={Link} to="/" onClick={f.handleDrawerClose}>
+            <ListItemIcon>
+              <LabelIcon />
+            </ListItemIcon>
+            <ListItemText primary="Home" />
+          </ListItem>
+
+          <ListItem component={Link} to="/rooms" onClick={f.handleDrawerClose}>
+            <ListItemIcon>
+              <LabelIcon />
+            </ListItemIcon>
+            <ListItemText primary="Rooms" />
+          </ListItem>
+
+          <ListItem
+            button
+            component={Link}
+            to="/history"
+            onClick={f.handleDrawerClose}
+          >
+            <ListItemIcon>
+              <LabelIcon />
+            </ListItemIcon>
+            <ListItemText primary="History" />
+          </ListItem>
         </List>
       </Drawer>
     </div>

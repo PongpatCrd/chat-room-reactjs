@@ -10,8 +10,8 @@ const schema = new conn.Schema(
     isActive: { type: Boolean, required: true, default: false },
     activateToken: { type: String, unique: true, required: true },
     isActivated: { type: Boolean, required: true, default: false },
-    accessToken: { type: String, default: null },
-    accessTokenExpiry: { type: Date, default: null },
+    isOnline: { type: Boolean, required: true, default: false },
+    lastOnlineAt: { type: Date, default: null }
   },
   {
     timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
@@ -22,7 +22,7 @@ schema.pre("save", function(next) {
   console.log("pre save");
   try {
     if (this.isModified("password"))
-      this.password = hpf.encryptVal(this.password);
+      this.password = hpf.encryptVal(hpf.generateHash(this.password));
     if (this.isModified("displayName"))
       this.displayName = hpf.encryptVal(this.displayName);
     if (this.isModified("email"))
@@ -37,7 +37,7 @@ schema.pre("findOneAndUpdate", function(next) {
   console.log("pre findOneAndUpdate");
   try {
     if (this._update.password)
-      this._update.password = hpf.encryptVal(this._update.password);
+      this._update.password = hpf.encryptVal(hpf.generateHash(this._update.password));
     if (this._update.displayName)
       this._update.displayName = hpf.encryptVal(this._update.displayName);
     if (this._update.email)
@@ -48,9 +48,16 @@ schema.pre("findOneAndUpdate", function(next) {
   }
 });
 
-schema.methods.isMatchedPassword = function(candidatePassword) {
-  const isMatch = hpf.decryptVal(this.password) == candidatePassword;
-  return isMatch;
+schema.methods.isMatchedPassword = async function(candidatePassword) {
+  if (candidatePassword != this.password) {
+    const inputPassword = hpf.generateHash(candidatePassword)
+    const dbPassword = hpf.decryptVal(this.password)
+    return inputPassword === dbPassword;
+  }
+  else {
+    return false
+  }
+
 };
 
 schema.methods.sendActivationEmail = function() {

@@ -3,7 +3,7 @@ const {
   removeUser,
   getUser,
   getUsersInRoom,
-} = require("./model/users");
+} = require("../model/users");
 
 function SocketIo(server) {
   const io = require("socket.io")(server, {
