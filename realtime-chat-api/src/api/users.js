@@ -66,6 +66,8 @@ module.exports.login = async (req, res) => {
   const session = await userModel.startSession();
   session.startTransaction();
 
+  // comment many lines for test redis handler multiple request same time
+
   // const user = await userModel
   //   .findOne({
   //     username: data.username,
