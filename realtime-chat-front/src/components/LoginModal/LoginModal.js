@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useCookies } from "react-cookie";
 import API from "../../helpers/APIConnector/APIConnector";
 
 import Visibility from "@material-ui/icons/Visibility";
@@ -29,6 +30,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 const LoginModal = ({ show, closeFn }) => {
+  const [cookies, setCookie] = useCookies(["refreshToken"])
   const { user, dispatch } = useContext(UserContext);
 
   const [data, setData] = useState({
@@ -72,16 +74,22 @@ const LoginModal = ({ show, closeFn }) => {
       })
         .then((res) => {
           const data = res.data;
+          const userData = data.data.user
+          const accessToken = data.data.accessToken
+          const refreshToken = data.data.refreshToken
 
           if (data.status && data.data) {
             new Toast({
               icon: "success",
-              title: `Hi ${data.data.displayName}, Wellcome!`,
+              title: `Hi ${userData.displayName}, Wellcome!`,
             }).shoot();
 
             f.resetInputData();
 
-            dispatch({ type: "SET_USER", data: data.data });
+            dispatch({ type: "SET_USER", data: userData });
+            setCookie("refreshToken", refreshToken)
+            
+            // arg function that use to hide modal
             closeFn();
           } else {
             new Toast({ icon: "error", title: data.msg }).shoot();

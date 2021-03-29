@@ -5,4 +5,5 @@ export default axios.create({
     process.env.NODE_ENV === "production"
       ? process.env.REACT_APP_PROD_BASE_API_URL
       : process.env.REACT_APP_DEV_BASE_API_URL,
+  withCredentials: true,
 });

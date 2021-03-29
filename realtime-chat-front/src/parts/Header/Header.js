@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useCookies } from "react-cookie";
 import { Link } from "react-router-dom";
 import API from "../../helpers/APIConnector/APIConnector";
 
@@ -40,6 +41,7 @@ const styles = makeStyles({
 const Header = () => {
   const { user, dispatch } = useContext(UserContext);
   const { common, dispatch: commonDispatch } = useContext(CommonContext);
+  const [removeCookie] = useCookies()
 
   const [openSiderBar, setOpenSiderBar] = useState(false);
 
@@ -61,6 +63,7 @@ const Header = () => {
           if (data.status) {
             new Toast({ icon: "success", title: data.msg }).shoot();
             dispatch({ type: "REMOVE_USER" });
+            removeCookie('refreshToken')
           } else {
             new Toast({ icon: "error", title: data.msg }).shoot();
           }
@@ -75,6 +78,7 @@ const Header = () => {
 
   return (
     <div>
+      {/* <Button onClick={() => API.post('/test')}>asaf</Button> */}
       <LoginModal
         show={common.showLoginModal}
         closeFn={f.closeLoginModal}

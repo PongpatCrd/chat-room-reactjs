@@ -66,66 +66,75 @@ module.exports.login = async (req, res) => {
   const session = await userModel.startSession();
   session.startTransaction();
 
-  const user = await userModel
-    .findOne({
-      username: data.username,
-      isActive: true,
-      isActivated: true,
-    })
-    .session(session);
+  // const user = await userModel
+  //   .findOne({
+  //     username: data.username,
+  //     isActive: true,
+  //     isActivated: true,
+  //   })
+  //   .session(session);
+
+  user = {
+    id: data.username,
+    username: data.username,
+    displayName: data.username,
+    lastOnlineAt: "now"
+  }
 
   if (user) {
-    const isMatchPassword = await user.isMatchedPassword(data.password);
+    // const isMatchPassword = await user.isMatchedPassword(data.password);
+    const isMatchPassword = true
 
     if (isMatchPassword) {
       const newAccessToken = hpf.generateAccessJWT({ userId: user.id });
       const newRefreshToken = hpf.generateRefreshJWT({ userId: user.id });
 
-      const dbTimeNow = new Date(conn.now());
-      user.isOnline = true;
-      user.lastOnlineAt = dbTimeNow;
-      await user.save();
+      // const dbTimeNow = new Date(conn.now());
+      // user.isOnline = true;
+      // user.lastOnlineAt = dbTimeNow;
+      // await user.save();
 
-      await session.commitTransaction();
-      session.endSession();
+      // await session.commitTransaction();
+      // session.endSession();
 
       let refreshTokenStore = await redisCli.get(`refreshToken`);
-      // get objects with key is user.id and value is array of refresh token
+      // get objects with key is user.id and value is array of refresh token => { user.id: [], user.id: [], ...}
       refreshTokenStore = await JSON.parse(refreshTokenStore);
 
+      if(!refreshTokenStore) refreshTokenStore = {}
+
       const key = user.id;
-      if (refreshTokenStore) {
-        console.log("refreshTokenStore")
-        if (refreshTokenStore[key]) {
-          console.log("refreshTokenStore key 1")
-          refreshTokenStore[key].push(newRefreshToken);
-        } else {
-          console.log("refreshTokenStore key false")
-          refreshTokenStore[key] = [newRefreshToken];
-        }
+      if (refreshTokenStore[key]) {
+        refreshTokenStore[key].push(refreshTokenStore[key].length);
       } else {
-        refreshTokenStore = {
-          key: [newRefreshToken]
-        }
+        refreshTokenStore[key] = [0];
       }
 
-      refreshTokenStore = await JSON.stringify(refreshTokenStore)
-      await redisCli.set("refreshToken", refreshTokenStore);
+      for (const [key, value] of Object.entries(refreshTokenStore)) {
+        await redisCli.set(`${key}`, value.length);
+      }
 
-      return res.send(
-        hpf.generalResponse(
-          {
-            user: {
-              username: user.username,
-              displayName: hpf.decryptVal(user.displayName),
-              lastOnlineAt: user.lastOnlineAt,
+      refreshTokenStore = await JSON.stringify(refreshTokenStore);
+      await redisCli.set("refreshToken", refreshTokenStore);
+      try {
+        return res.send(
+          hpf.generalResponse(
+            {
+              user: {
+                username: user.username,
+                displayName: '1',
+                lastOnlineAt: user.lastOnlineAt,
+              },
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
             },
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
-          },
-          true
-        )
-      );
+            true
+          )
+        );        
+      } catch (error) {
+        console.log(error)
+        return
+      }
     } else {
       return res.send(hpf.generalResponse(null, false, "password not match."));
     }
@@ -147,6 +156,7 @@ module.exports.logout = async (req, res) => {
     username: required,
   }
   */
+  const refreshToken = req.cookies;
   const data = req.body;
 
   const session = await userModel.startSession();

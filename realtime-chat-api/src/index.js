@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cookieParser = require('cookie-parser')
 const cors = require("cors");
 const http = require("http");
 const router = require("./router");
@@ -24,10 +25,13 @@ app.use(
         cb(new Error('Not allowed by CORS'))
       }
     },
+    credentials: true,
+    exposedHeaders: ["set-cookie"],
     optionsSuccessStatus: 200,
   })
 );
 
+app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(router);
